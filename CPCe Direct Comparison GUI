@@ -1,0 +1,145 @@
+import os
+import pandas as pd
+import tkinter as tk
+from tkinter import filedialog
+from sklearn.metrics import matthews_corrcoef, accuracy_score, f1_score, cohen_kappa_score
+from scipy.stats import chisquare
+import math
+
+def get_cpc_filenames(directory):
+    return [f for f in os.listdir(directory) if f.endswith('.cpc')]
+
+
+def read_cpc(file_path):
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
+
+    try:
+        start_line = next(i for i, line in enumerate(lines) if line.startswith('"1"'))
+        try:
+            end_line = next(i for i, line in enumerate(lines) if line.startswith('"75"'))
+        except StopIteration:
+            end_line = next(i for i, line in enumerate(lines) if line.startswith('"50"'))
+    except StopIteration:
+        print(f"Could not find required lines in file: {file_path}")
+        return None  # or raise an exception, or continue with an empty DataFrame
+
+    annotation_lines = lines[start_line:end_line + 1]
+
+    # Assuming the rest of your code for parsing the lines into a DataFrame remains the same
+    data = []
+    for line in annotation_lines:
+        parts = line.strip().split(',')
+        index, annotation, _, subcategory = parts
+        data.append([index.strip('"'), annotation.strip('"'), subcategory.strip('"')])
+
+    dt = pd.DataFrame(data, columns=['Index', 'Annotation', 'Subcategory'])
+    dt['Index'] = dt['Index'].astype(int)
+
+    return dt
+
+
+def calculate_mcc(x, y):
+    return matthews_corrcoef(x, y)
+
+def shannon_wiener_index(series):
+    total = len(series)
+    value_counts = series.value_counts()
+    sw_index = -sum((count / total) * math.log2(count / total) for count in value_counts)
+    return sw_index
+
+def simpsons_index(series):
+    total = len(series)
+    value_counts = series.value_counts()
+    simpsons_index = 1 - sum((count / total) ** 2 for count in value_counts)
+    return simpsons_index
+
+def chao1_index(series):
+    value_counts = series.value_counts()
+    singletons = sum(value_counts == 1)
+    doubletons = sum(value_counts == 2)
+    if doubletons == 0:
+        return len(value_counts)
+    else:
+        chao1 = len(value_counts) + ((singletons ** 2) / (2 * doubletons))
+        return chao1
+
+def perform_analysis():
+    dir1 = dir1_var.get()  # Actual data
+    dir2 = dir2_var.get()  # Predicted data
+
+    files1 = get_cpc_filenames(dir1)
+    files2 = get_cpc_filenames(dir2)
+
+    # Debug print statements
+    print(f"Number of files in Actual Data folder: {len(files1)}")
+    print(f"Number of files in Predicted Data folder: {len(files2)}")
+
+    output.delete(1.0, tk.END)
+
+    aggregated_actual = pd.DataFrame(columns=['Index', 'Annotation', 'Notes', 'Subcategory'])
+    aggregated_predicted = pd.DataFrame(columns=['Index', 'Annotation', 'Notes', 'Subcategory'])
+
+    for filename in files1:
+        file_path1 = os.path.join(dir1, filename)
+        dt1 = read_cpc(file_path1)
+        aggregated_actual = pd.concat([aggregated_actual, dt1], ignore_index=True)
+
+    for filename in files2:
+        file_path2 = os.path.join(dir2, filename)
+        dt2 = read_cpc(file_path2)
+        aggregated_predicted = pd.concat([aggregated_predicted, dt2], ignore_index=True)
+
+    # More debug print statements
+    print(f"Number of annotations in aggregated actual data: {len(aggregated_actual)}")
+    print(f"Number of annotations in aggregated predicted data: {len(aggregated_predicted)}")
+
+    x1 = aggregated_actual['Annotation']
+    x2 = aggregated_predicted['Annotation']
+
+    mcc = calculate_mcc(x1, x2)
+    acc = accuracy_score(x1, x2)
+    f1 = f1_score(x1, x2, average='weighted')
+    ck = cohen_kappa_score(x1, x2)
+
+    # Shannon-Wiener Index
+    sw1 = shannon_wiener_index(x1)
+    sw2 = shannon_wiener_index(x2)
+
+    # Simpson's Index of Diversity
+    simp1 = simpsons_index(x1)
+    simp2 = simpsons_index(x2)
+
+    # Chao1 Index
+    chao1_1 = chao1_index(x1)
+    chao1_2 = chao1_index(x2)
+
+    output.insert(tk.END, f"Accuracy: {acc}\n")
+    output.insert(tk.END, f"F1 Score: {f1}\n")
+    output.insert(tk.END, f"Matthews Correlation Coefficient: {mcc}\n")
+    output.insert(tk.END, f"Cohen's Kappa: {ck}\n")
+
+    output.insert(tk.END, f"Actual Shannon-Wiener Index: {sw1}\n")
+    output.insert(tk.END, f"Predicted Shannon-Wiener Index: {sw2}\n")
+    output.insert(tk.END, f"Actual Simpsons Index: {simp1}\n")
+    output.insert(tk.END, f"Predicted Simpson's Index: {simp2}\n")
+    output.insert(tk.END, f"Actual Chao Index: {chao1_1}\n")
+    output.insert(tk.END, f"Predicted Chao Index: {chao1_2}\n")
+
+root = tk.Tk()
+root.title("CPC File Comparison")
+
+dir1_var = tk.StringVar()
+dir2_var = tk.StringVar()
+
+tk.Label(root, text="Select the folder for Actual Data:").pack()
+tk.Button(root, text="Browse", command=lambda: dir1_var.set(filedialog.askdirectory())).pack()
+tk.Label(root, text="Select the folder for Predicted Data:").pack()
+tk.Button(root, text="Browse", command=lambda: dir2_var.set(filedialog.askdirectory())).pack()
+
+tk.Button(root, text="Perform Analysis", command=perform_analysis).pack()
+
+output = tk.Text(root, height=20, width=100)
+output.pack()
+
+root.mainloop()
