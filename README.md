@@ -35,19 +35,18 @@ Statistical Comparison: Evaluates predicted vs. actual coral cover using accurac
 Installation
 Clone the repository:
 
-bash
-Copy code
+Copy code:
 git clone https://github.com/Dannosuke/Coral_Statistics.git
 cd Coral_Statistics
+
 Install the required Python libraries:
 
-bash
-Copy code
+Copy code:
 pip install numpy pandas scikit-learn scipy
+
 Run any of the three scripts with Python:
 
-bash
-Copy code
+Copy code:
 python script_name.py
 
 
@@ -55,7 +54,7 @@ Usage
 1. Random File Selector
 This script allows users to select a random subset of files from a source directory and copy them to a target directory, with the option to specify the percentage of files.
 
-Launch the script: random_file_selector.py
+Launch the script: Random_File_Mover_GUI.py
 GUI Workflow:
 Select the source and target folders.
 Choose the percentage of files to copy.
@@ -64,16 +63,17 @@ Click "Copy Files" to execute the operation.
 2. Coral Cover Analysis
 This script calculates coral cover averages at site, transect, and depth levels within a selected folder structure. Data is organized into summaries and can be saved as CSV files.
 
-Launch the script: coral_cover_analysis.py
+Launch the script: Coral_Cover_Analysis_per_Site_over_Depth_GUI_(CSV).py
+
 GUI Workflow:
-Select the main folder containing .cpc files.
-Review calculated summaries in the GUI text box.
-Save results as CSV files for site, transect, depth per site, and island-wide depth summaries.
+  Select the main folder containing .cpc files.
+  Review calculated summaries in the GUI text box.
+  Save results as CSV files for site, transect, depth per site, and island-wide depth summaries.
 
 3. Coral Cover Comparison
 This tool compares actual vs. predicted coral cover data using metrics like accuracy, F1-score, Cohen's kappa, and Matthews correlation coefficient. It also calculates ecological diversity indices such as Shannon-Wiener, Simpson’s, and Chao1.
 
-Launch the script: coral_cover_comparison.py
+Launch the script: CPCe_Direct_Comparison_GUI.py
 
 
 GUI Workflow:
@@ -88,6 +88,5 @@ Python 3.x
 Libraries: numpy, pandas, scikit-learn, scipy, tkinter
 Install dependencies with:
 
-bash
-Copy code
+Copy code:
 pip install numpy pandas scikit-learn scipy
