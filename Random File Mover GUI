@@ -1,0 +1,107 @@
+import os
+import random
+import shutil
+import tkinter as tk
+from tkinter import filedialog
+
+class App(tk.Tk):
+    def __init__(self):
+        super().__init__()
+
+        # Set the window title and geometry
+        self.title("Random File Selector")
+        self.geometry("800x600")
+
+        # Set the font
+        self.font = ("TkDefaultFont", 12)
+
+        # Create the title label
+        self.title_label = tk.Label(self, text="Random File Selector", font=("TkDefaultFont", 24, "bold"))
+        self.title_label.pack(pady=20)
+
+        # Create the source folder selection button and label
+        self.source_label = tk.Label(self, text="Source Folder:", font=self.font)
+        self.source_label.pack(padx=20, pady=10, anchor="w")
+        self.source_button = tk.Button(self, text="Select", command=self.select_source_folder)
+        self.source_button.pack(padx=20, pady=10, anchor="w")
+        self.source_path_label = tk.Label(self, text="", font=self.font)
+        self.source_path_label.pack(padx=20, pady=10, anchor="w")
+
+        # Create the target folder selection button and label
+        self.target_label = tk.Label(self, text="Target Folder:", font=self.font)
+        self.target_label.pack(padx=20, pady=10, anchor="w")
+        self.target_button = tk.Button(self, text="Select", command=self.select_target_folder)
+        self.target_button.pack(padx=20, pady=10, anchor="w")
+        self.target_path_label = tk.Label(self, text="", font=self.font)
+        self.target_path_label.pack(padx=20, pady=10, anchor="w")
+
+        # Create the percentage dropdown and label
+        self.percentage_label = tk.Label(self, text="Percentage to Copy:", font=self.font)
+        self.percentage_label.pack(padx=20, pady=10, anchor="w")
+        self.percentage_var = tk.StringVar()
+        self.percentage_dropdown = tk.OptionMenu(self, self.percentage_var, "3%", "5%", "10%", "20%", "40%", "60%", "80%", "90%", "100%")
+        self.percentage_dropdown.pack(padx=20, pady=10, anchor="w")
+
+        # Create the copy button
+        self.copy_button = tk.Button(self, text="Copy Files", command=self.copy_files)
+        self.copy_button.pack(padx=20, pady=10)
+
+        # Initialize the source and target folder paths
+        self.source_path = ""
+        self.target_path = ""
+
+    def select_source_folder(self):
+        # Open the file dialog to select the source folder
+        self.source_path = filedialog.askdirectory()
+        self.source_path_label.config(text=self.source_path)
+
+    def select_target_folder(self):
+        # Open the file dialog to select the target folder
+        self.target_path = filedialog.askdirectory()
+        self.target_path_label.config(text=self.target_path)
+
+    def copy_files(self):
+        if not self.source_path or not self.target_path:
+            # Display an error message if the source or target folder is not selected
+            tk.messagebox.showerror("Error", "Please select both source and target folders")
+            return
+
+        # Get the selected percentage from the dropdown and calculate the number of files to copy
+        percentage = self.percentage_var.get()
+        if percentage == "3%":
+            num_files_to_copy = int(len(os.listdir(self.source_path)) * 0.03 + 0.5)
+        elif percentage == "5%":
+            num_files_to_copy = int(len(os.listdir(self.source_path)) * 0.05 + 0.5)
+        elif percentage == "10%":
+            num_files_to_copy = int(len(os.listdir(self.source_path)) * 0.1 + 0.5)
+        elif percentage == "20%":
+            num_files_to_copy = int(len(os.listdir(self.source_path)) * 0.2 + 0.5)
+        elif percentage == "40%":
+            num_files_to_copy = int(len(os.listdir(self.source_path)) * 0.4 + 0.5)
+        elif percentage == "60%":
+            num_files_to_copy = int(len(os.listdir(self.source_path)) * 0.6 + 0.5)
+        elif percentage == "80%":
+            num_files_to_copy = int(len(os.listdir(self.source_path)) * 0.8 + 0.5)
+        elif percentage == "90%":
+            num_files_to_copy = int(len(os.listdir(self.source_path)) * 0.9 + 0.5)
+        elif percentage == "100%":
+            num_files_to_copy = int(len(os.listdir(self.source_path)) * 1.0 + 0.5)
+        else:
+            # Set the number of files to copy to 0 if the percentage is not valid
+            num_files_to_copy = 0
+
+        # Randomly select the files to copy
+        files_to_copy = random.sample(os.listdir(self.source_path), num_files_to_copy)
+
+        # Copy the selected files to the target folder
+        for filename in files_to_copy:
+            source_path = os.path.join(self.source_path, filename)
+            target_path = os.path.join(self.target_path, filename)
+            shutil.copy(source_path, target_path)
+
+        # Display a success message
+        tk.messagebox.showinfo("Success", "Files copied successfully")
+
+if __name__ == "__main__":
+    app = App()
+    app.mainloop()
